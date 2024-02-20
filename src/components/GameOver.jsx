@@ -1,7 +1,19 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import React from 'react';
+import Sound from 'react-native-sound';
+import sadFx from '../assets/awwSound.mp3';
 
 const GameOver = ({ startGame }) => {
+    Sound.setCategory('Playback');
+    const awwSound = new Sound(sadFx, (error) => {
+        if (error) {
+            console.log('failed to load the sound', error);
+            return;
+        }
+        awwSound.play();
+    });
+    awwSound.play();
+
     return (
         <View style={styles.container}>
             <Text style={styles.gameOver}>

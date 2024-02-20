@@ -1,7 +1,18 @@
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, TouchableHighlight, Image, Modal } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, LogBox, TouchableHighlight, TouchableNativeFeedback, Image, Modal } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import GameOver from './GameOver';
 import axios from 'axios';
+import LottieView from "lottie-react-native";
+import Sound from 'react-native-sound';
+import chime1 from '../assets/harp1.mp3';
+import chime2 from '../assets/harp2.mp3';
+import winFx from '../assets/winSound.mp3';
+import newFx from '../assets/newSound.mp3';
+import popFx1 from '../assets/pop1.mp3';
+import popFx2 from '../assets/pop2.mp3';
+import happyChime from '../assets/pianoChime.mp3';
+import errFx from '../assets/err.mp3';
+
 
 
 const GameGrid = (props) => {
@@ -12,10 +23,74 @@ const GameGrid = (props) => {
     const [isLastMove, setIsLastMove] = useState(false);
     const [gameOver, setGameOver] = useState(false);
     const [discardPile, setDiscardPile] = useState([]);
+    const [roundAnimation, setRoundAnimation] = useState(false);
 
     const cardOne = useRef(null);
     const isSelectingSecond = useRef(null);
     const isPairingMode = useRef(false);
+    const roundRef = useRef(null);
+
+    LogBox.ignoreAllLogs();
+
+    Sound.setCategory('Playback');
+    const harp1 = new Sound(chime1, (error) => {
+        if (error) {
+            console.log('failed to load the sound', error);
+            return;
+        }
+
+    })
+    const harp2 = new Sound(chime2, (error) => {
+        if (error) {
+            console.log('failed to load the sound', error);
+            return;
+        }
+
+    })
+    const newSound = new Sound(newFx, (error) => {
+        if (error) {
+            console.log('failed to load the sound', error);
+            return;
+        }
+
+    })
+
+    const winSound = new Sound(winFx, (error) => {
+        if (error) {
+            console.log('failed to load the sound', error);
+            return;
+        }
+
+    })
+    const pop1 = new Sound(popFx1, (error) => {
+        if (error) {
+            console.log('failed to load the sound', error);
+            return;
+        }
+
+    })
+    const pop2 = new Sound(popFx2, (error) => {
+        if (error) {
+            console.log('failed to load the sound', error);
+            return;
+        }
+
+    })
+    const pianoChime = new Sound(happyChime, (error) => {
+        if (error) {
+            console.log('failed to load the sound', error);
+            return;
+        }
+
+    })
+    const errSound = new Sound(errFx, (error) => {
+        if (error) {
+            console.log('failed to load the sound', error);
+            return;
+        }
+
+    })
+
 
     const cardBack = 'https://www.deckofcardsapi.com/static/img/back.png';
     const gameArray = ['KING', 'QUEEN', 'QUEEN', 'KING', 'JACK', 'FREE', 'FREE', 'JACK', 'JACK', 'FREE', 'FREE', 'JACK', 'KING', 'QUEEN', 'QUEEN', 'KING']
@@ -220,6 +295,8 @@ const GameGrid = (props) => {
 
     }, [card]);
 
+
+
     //  ** Main Click Handler Fucntion for Clicking Card Slots
     const handlePress = async (item) => {
         if (cardCount === 52) {
@@ -241,6 +318,7 @@ const GameGrid = (props) => {
             setIsLastMove(true)
         }
         if (moveCount.length === 15) {
+            harp1.play();
             console.log("FULL GRID");
             isSelectingSecond.current = false;
             isPairingMode.current = true;
@@ -250,9 +328,11 @@ const GameGrid = (props) => {
 
         //  **  If Grid is FULL, Start Selecting Cards for Matching Sums of 10
         if (isGridFull) {
+
             if (isSelectingSecond.current === false) {
                 cardOne.current = item;
                 isSelectingSecond.current = true;
+                pop1.play();
             } else if (isSelectingSecond.current === true && cardOne.current) {
                 let choiceA;
                 let choiceB;
@@ -272,6 +352,7 @@ const GameGrid = (props) => {
                 console.log("Card 2 is: ", choiceB);
                 if (choiceA + choiceB === 10) {
                     console.log("They Match!");
+                    pianoChime.play();
                     //  Handle MATCHES - Copy game state and discard piles, move cards accordingly
                     const tempDiscardPile = discardPile.slice();
                     const tempBoard = gameState.slice();
@@ -302,6 +383,7 @@ const GameGrid = (props) => {
                         isPairingMode.current = true;
                     } else {
                         console.log("NOOO MORE MATCHES - MOVE TO NEXT ROUND");
+                        triggerRound();
                         cardOne.current = null;
                         isSelectingSecond.current = null;
                         isPairingMode.current = false;
@@ -311,6 +393,7 @@ const GameGrid = (props) => {
                     }
                 } else {
                     console.log("They Don't Match!");
+                    errSound.play();
                     cardOne.current = null;
                     isSelectingSecond.current = false;
                 }
@@ -388,6 +471,8 @@ const GameGrid = (props) => {
 
     //  Restart a new game from game over screen
     const startGame = () => {
+        newSound.setVolume(.5);
+        newSound.play();
         setDiscardPile([]);
         setCard({});
         setIsGridFull(false);
@@ -406,10 +491,19 @@ const GameGrid = (props) => {
         setGameOver(false);
     }
 
+    //  ****  TRIGGER ROUND ANIMATIONS  ****
+    const triggerRound = () => {
+        setRoundAnimation(true);
+        if (roundRef.current) {
+            roundRef.current.play(0)
+        }
+        harp2.play();
+    }
 
     return (
         <View style={styles.container}>
             {gameOver ? <GameOver startGame={startGame}></GameOver> : null}
+
             <View style={styles.grid}>
                 <FlatList
                     data={gameState}
@@ -418,7 +512,7 @@ const GameGrid = (props) => {
                     renderItem={(item) => {
                         // console.log(item.item);
                         return (
-                            <TouchableOpacity onPress={() => {
+                            <TouchableNativeFeedback onPress={() => {
                                 handlePress(item);
                             }} >
                                 <View style={styles.card}>
@@ -429,7 +523,7 @@ const GameGrid = (props) => {
                                             <Image source={{ uri: item.item.image }} style={styles.cardImg2} />
                                     }
                                 </View>
-                            </TouchableOpacity>
+                            </TouchableNativeFeedback>
                         )
                     }} />
             </View>
@@ -444,7 +538,7 @@ const GameGrid = (props) => {
                         }
                     </View>
                 </TouchableHighlight>
-                <TouchableHighlight onPress={() => console.log(discardPile.length)}>
+                <TouchableHighlight onPress={() => pianoChime.play()}>
                     <View style={styles.discardPile}>
                         {
                             discardPile.length > 0 ?
@@ -455,6 +549,20 @@ const GameGrid = (props) => {
                     </View>
                 </TouchableHighlight>
             </View>
+            {
+                roundAnimation ?
+                    <LottieView
+                        source={require("../assets/chefKiss_animation.json")}
+                        ref={roundRef}
+                        style={styles.lottie}
+                        autoPlay={false}
+                        loop={false}
+                        resizeMode='cover'
+                        onAnimationFinish={() => setRoundAnimation(false)}
+                    /> :
+                    null
+            }
+
         </View>
     )
 }
@@ -544,5 +652,15 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0,0,0,.15)',
         textShadowRadius: 8,
         textAlign: 'center',
+    },
+    lottie: {
+        width: "100%",
+        height: "100%",
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        opacity: 1,
+        zIndex: 10,
+        pointerEvents: 'none',
     },
 })

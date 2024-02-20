@@ -1,9 +1,10 @@
 import { StyleSheet, Text, View, ImageBackground, Image } from 'react-native'
-import React from 'react';
+import React, { useEffect } from 'react';
 import Welcome from './src/screens/Welcome';
 import Game from './src/screens/Game';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { hideNavigationBar } from 'react-native-navigation-bar-color';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -11,7 +12,15 @@ type RootStackParamList = {
 };
 
 const App = () => {
+
+
   const Stack = createNativeStackNavigator<RootStackParamList>();
+  const hideBottomNav = () => {
+    hideNavigationBar();
+  };
+  useEffect(() => {
+    hideBottomNav();
+  }, [])
 
   return (
     <NavigationContainer>

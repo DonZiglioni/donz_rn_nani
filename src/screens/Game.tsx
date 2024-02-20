@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import GameGrid from '../components/GameGrid';
 import axios from 'axios';
+
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -12,10 +13,24 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'Game'>;
 
 
-
 const Game = ({ navigation }: Props) => {
+    // Sound.setCategory('Playback');
+
+    // const bgSong = new Sound(song2, (error) => {
+    //     if (error) {
+    //         console.log('failed to load the sound', error);
+    //         return;
+    //     }
+
+    // });
+
+    // useEffect(() => {
+    //     bgSong.play()
+    // }, [])
+
     const [deckId, setDeckId] = useState('');
     const [cardCount, setCardCount] = useState(52);
+
 
     const getDeck = async () => {
         const res = await axios.get("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1");
@@ -24,8 +39,10 @@ const Game = ({ navigation }: Props) => {
     };
 
     useEffect(() => {
+
         getDeck();
     }, []);
+
 
     return (
         <View style={styles.container} >
@@ -37,7 +54,9 @@ const Game = ({ navigation }: Props) => {
                 <View style={styles.header}>
 
                 </View>
+
                 <GameGrid deckId={deckId} cardCount={cardCount} shuffle={getDeck} />
+
                 <View style={styles.footer}>
 
                 </View>
